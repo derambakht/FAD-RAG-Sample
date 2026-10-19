@@ -1,0 +1,702 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>راهنمای RAG فارسی</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: RTL reading column with a sticky table of contents on the right; code stays LTR inside its own scroll box */
+:root{
+  --bg:#f6f7f6; --surface:#ffffff; --fg:#17201f; --muted:#5a6866; --line:#d9e0de;
+  --accent:#0d6b62; --accent-soft:#e0f0ed; --code-bg:#0f1716; --code-fg:#e4ecea; --warn:#9a5b00; --warn-soft:#fbf0dd;
+  --font-body:"Vazirmatn", Tahoma, "Segoe UI", sans-serif;
+  --font-code:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101615; --surface:#161e1d; --fg:#e3ebe9; --muted:#9aaba8; --line:#2a3634;
+  --accent:#4fc1b2; --accent-soft:#173430; --code-bg:#0a0f0e; --code-fg:#dbe5e3; --warn:#e8b25c; --warn-soft:#2e2414; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101615; --surface:#161e1d; --fg:#e3ebe9; --muted:#9aaba8; --line:#2a3634;
+  --accent:#4fc1b2; --accent-soft:#173430; --code-bg:#0a0f0e; --code-fg:#dbe5e3; --warn:#e8b25c; --warn-soft:#2e2414; color-scheme:dark}
+
+html{direction:rtl}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16.5px;line-height:1.95;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px;text-align:right}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:240px minmax(0,1fr);gap:48px}
+header.top{grid-column:1/-1;padding-block:40px 8px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;color:var(--accent);font-weight:700;letter-spacing:.02em}
+h1{font-size:clamp(28px,4.4vw,42px);line-height:1.35;margin:6px 0 10px;font-weight:800;text-wrap:balance}
+.meta{color:var(--muted);font-size:14px;margin:0 0 20px}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;font-size:14.5px;padding-top:28px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:5px 12px;border-right:2px solid var(--line);line-height:1.6}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--accent);border-right-color:var(--accent);outline:none}
+main{min-width:0;padding-top:12px}
+section{padding-block:28px 8px;border-bottom:1px solid var(--line)}
+section:last-child{border-bottom:0}
+h2{font-size:25px;font-weight:800;margin:0 0 12px;line-height:1.5;text-wrap:balance;scroll-margin-top:20px}
+h2 .n{color:var(--accent);font-weight:700;margin-left:10px}
+h3{font-size:18.5px;font-weight:700;margin:26px 0 6px}
+p{margin:0 0 14px;max-width:72ch}
+.lead{font-size:18px}
+strong{font-weight:700}
+ul,ol{margin:0 0 16px;padding-right:22px;padding-left:0;max-width:72ch}
+li{margin-bottom:4px}
+code{font-family:var(--font-code);font-size:.86em;background:var(--accent-soft);padding:1px 6px;border-radius:5px;direction:ltr;unicode-bidi:isolate}
+.tbl{overflow-x:auto;margin:6px 0 20px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:520px}
+th,td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th{font-weight:700;font-size:13.5px;color:var(--muted);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;direction:ltr;text-align:right;unicode-bidi:isolate}
+.codebox{position:relative;margin:8px 0 22px;border-radius:10px;background:var(--code-bg);overflow:hidden}
+.codebox .bar{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;font-family:var(--font-code);font-size:12px;color:#8fa29f;border-bottom:1px solid #22302e;direction:ltr}
+.codebox button{font:inherit;color:#cfe0dc;background:transparent;border:1px solid #33433f;border-radius:6px;padding:2px 10px;cursor:pointer}
+.codebox button:hover,.codebox button:focus-visible{border-color:#6fc9bc;color:#fff;outline:none}
+pre{margin:0;overflow-x:auto;padding:14px 16px;direction:ltr;text-align:left;color:var(--code-fg);font-family:var(--font-code);font-size:13.2px;line-height:1.7;tab-size:4}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.note{background:var(--warn-soft);border-right:3px solid var(--warn);padding:10px 16px;border-radius:6px;margin:4px 0 18px;max-width:72ch}
+.note b{color:var(--warn)}
+figure{margin:12px 0 18px}
+.diagram{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.diagram svg{display:block;width:100%;min-width:640px;height:auto}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+.svg-box{fill:none;stroke:var(--muted);stroke-width:1.25}
+.svg-box.hot{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+.svg-name{fill:var(--fg);font-weight:700;font-size:14px;font-family:var(--font-body)}
+.svg-sub{fill:var(--muted);font-size:12px;font-family:var(--font-body)}
+.svg-line{fill:none;stroke:var(--muted);stroke-width:1.25}
+.checklist{list-style:none;padding:0}
+.checklist label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.checklist input{margin-top:9px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+.checklist input:checked + span{color:var(--muted);text-decoration:line-through}
+a{color:var(--accent)}
+@media (max-width:860px){
+  .wrap{grid-template-columns:minmax(0,1fr);gap:0}
+  nav.toc{position:static;padding-top:16px}
+  nav.toc ol{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">دوره مهندسی هوش مصنوعی · جلسه RAG فارسی</div>
+  <h1>راهنمای جلسه: ساخت RAG فارسی از روی PDF</h1>
+  <p class="meta">۲۷ مهر ۱۴۰۵ · نسخه OpenAI و نسخه کاملاً لوکال</p>
+</header>
+
+<nav class="toc" aria-label="فهرست">
+  <ol>
+    <li><a href="#map">۱. نقشه جلسه</a></li>
+    <li><a href="#env">۲. آماده‌سازی محیط</a></li>
+    <li><a href="#extract">۳. استخراج متن از PDF</a></li>
+    <li><a href="#justify">۴. PDFهای justify شده</a></li>
+    <li><a href="#digits">۵. اعداد و جهت متن</a></li>
+    <li><a href="#arabic">۶. حروف عربی و نرمال‌سازی</a></li>
+    <li><a href="#chunk">۷. بخش‌بندی دقیق</a></li>
+    <li><a href="#embed">۸. Embedding و ساخت RAG</a></li>
+    <li><a href="#test">۹. تست chunkها</a></li>
+    <li><a href="#practice">۱۰. تمرین و چک‌لیست</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="map">
+<h2><span class="n">۱</span>نقشه جلسه</h2>
+<p class="lead">در پایان این جلسه، هنرجوها یک پایپلاین RAG کامل روی PDFهای فارسی می‌سازند: یک بار با embedding و مدل OpenAI و یک بار کاملاً لوکال. پیام اصلی جلسه: <strong>در RAG فارسی، بیشتر خطاها از مرحله استخراج و پاک‌سازی متن می‌آیند، نه از انتخاب مدل.</strong></p>
+<p>اهداف یادگیری:</p>
+<ol>
+<li>تشخیص و رفع خرابی‌های رایج متن استخراج‌شده از PDF فارسی (ترتیب معکوس، کشیده، اعداد، حروف عربی).</li>
+<li>ساخت یک تابع نرمال‌سازی قابل‌اعتماد و استفاده از آن هم روی اسناد و هم روی پرسش کاربر.</li>
+<li>بخش‌بندی ساختارمحور و جمله‌محور فارسی به‌جای برش کورکورانه بر اساس کاراکتر.</li>
+<li>مقایسه embedding اوپن‌ای‌آی با embedding چندزبانه لوکال روی یک مجموعه پرسش واقعی.</li>
+<li>ارزیابی کمّی chunkها و بازیابی (Hit@k و MRR).</li>
+</ol>
+<p>زمان‌بندی پیشنهادی (۱۸۰ دقیقه؛ قابل تنظیم):</p>
+<div class="tbl"><table>
+<thead><tr><th>بخش</th><th>زمان (دقیقه)</th><th>خروجی</th></tr></thead>
+<tbody>
+<tr><td>مرور کوتاه جلسه قبل و معماری</td><td>۱۰</td><td>نمودار پایپلاین</td></tr>
+<tr><td>آماده‌سازی محیط</td><td>۱۰</td><td>نوت‌بوک آماده اجرا</td></tr>
+<tr><td>استخراج متن و مقایسه ابزارها</td><td>۲۰</td><td>متن خام سه ابزار کنار هم</td></tr>
+<tr><td>رفع مشکلات justify، اعداد و حروف عربی</td><td>۳۵</td><td>تابع <code>clean_fa()</code></td></tr>
+<tr><td>بخش‌بندی دقیق</td><td>۳۵</td><td>تابع <code>chunk_fa()</code></td></tr>
+<tr><td>Embedding و ساخت دو نسخه RAG</td><td>۳۰</td><td>دو retriever قابل مقایسه</td></tr>
+<tr><td>تست و ارزیابی chunkها</td><td>۳۰</td><td>جدول Hit@k برای هر دو نسخه</td></tr>
+<tr><td>تمرین و جمع‌بندی</td><td>۱۰</td><td>چک‌لیست</td></tr>
+</tbody></table></div>
+
+<figure>
+<div class="diagram">
+<svg viewBox="0 0 760 372" direction="rtl" role="img" aria-label="پاک‌سازی و بخش‌بندی، هسته جلسه امروز هستند">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--muted)"/></marker></defs>
+<text x="736" y="30" text-anchor="start" class="svg-name" style="font-size:16px">پاک‌سازی و بخش‌بندی، هسته جلسه امروز هستند</text>
+<text x="736" y="52" text-anchor="start" class="svg-sub">مراحل رنگی تمرکز امروزند · دو ردیف بالا: ساخت ایندکس · ردیف پایین: پاسخ به پرسش</text>
+<g marker-end="url(#arr)">
+<path class="svg-line" d="M573 112H554" marker-end="url(#arr)"/>
+<path class="svg-line" d="M390 112H371" marker-end="url(#arr)"/>
+<path class="svg-line" d="M207 112H188" marker-end="url(#arr)"/>
+<path class="svg-line" d="M106 148V176" marker-end="url(#arr)"/>
+<path class="svg-line" d="M188 212H207" marker-end="url(#arr)"/>
+<path class="svg-line" d="M371 212H390" marker-end="url(#arr)"/>
+<path class="svg-line" d="M472 248V276" marker-end="url(#arr)"/>
+<path class="svg-line" d="M573 312H554" marker-end="url(#arr)"/>
+<path class="svg-line" d="M390 312H371" marker-end="url(#arr)"/>
+<path class="svg-line" d="M207 312H188" marker-end="url(#arr)"/>
+</g>
+<rect class="svg-box" x="573" y="76" width="164" height="72" rx="8"/>
+<text x="655" y="108" text-anchor="middle" class="svg-name">PDF فارسی</text>
+<text x="655" y="126" text-anchor="middle" class="svg-sub">متنی یا اسکن‌شده</text>
+<rect class="svg-box" x="390" y="76" width="164" height="72" rx="8"/>
+<text x="472" y="100" text-anchor="middle" class="svg-name">استخراج متن</text>
+<text x="472" y="118" text-anchor="middle" class="svg-sub">PyMuPDF / pdfplumber</text>
+<text x="472" y="134" text-anchor="middle" class="svg-sub">OCR برای اسکن</text>
+<rect class="svg-box hot" x="207" y="76" width="164" height="72" rx="8"/>
+<text x="289" y="100" text-anchor="middle" class="svg-name">پاک‌سازی clean_fa</text>
+<text x="289" y="118" text-anchor="middle" class="svg-sub" style="fill:var(--fg)">کشیده، جهت خط، اعداد</text>
+<text x="289" y="134" text-anchor="middle" class="svg-sub" style="fill:var(--fg)">حروف عربی، نیم‌فاصله</text>
+<rect class="svg-box hot" x="24" y="76" width="164" height="72" rx="8"/>
+<text x="106" y="100" text-anchor="middle" class="svg-name">بخش‌بندی chunk_fa</text>
+<text x="106" y="118" text-anchor="middle" class="svg-sub" style="fill:var(--fg)">عنوان، جمله، بودجه توکن</text>
+<text x="106" y="134" text-anchor="middle" class="svg-sub" style="fill:var(--fg)">همپوشانی یک جمله</text>
+<rect class="svg-box hot" x="24" y="176" width="164" height="72" rx="8"/>
+<text x="106" y="208" text-anchor="middle" class="svg-name">بررسی chunkها</text>
+<text x="106" y="226" text-anchor="middle" class="svg-sub" style="fill:var(--fg)">audit + بازبینی چشمی</text>
+<rect class="svg-box" x="207" y="176" width="164" height="72" rx="8"/>
+<text x="289" y="208" text-anchor="middle" class="svg-name">Embedding</text>
+<text x="289" y="226" text-anchor="middle" class="svg-sub">OpenAI یا bge-m3</text>
+<rect class="svg-box" x="390" y="176" width="164" height="72" rx="8"/>
+<text x="472" y="208" text-anchor="middle" class="svg-name">Chroma + BM25</text>
+<text x="472" y="226" text-anchor="middle" class="svg-sub">یک collection برای هر مدل</text>
+<rect class="svg-box" x="573" y="276" width="164" height="72" rx="8"/>
+<text x="655" y="308" text-anchor="middle" class="svg-name">پرسش کاربر</text>
+<text x="655" y="326" text-anchor="middle" class="svg-sub">ابتدا از clean_fa می‌گذرد</text>
+<rect class="svg-box" x="390" y="276" width="164" height="72" rx="8"/>
+<text x="472" y="308" text-anchor="middle" class="svg-name">بازیابی ترکیبی</text>
+<text x="472" y="326" text-anchor="middle" class="svg-sub">بردار + BM25 با RRF</text>
+<rect class="svg-box" x="207" y="276" width="164" height="72" rx="8"/>
+<text x="289" y="308" text-anchor="middle" class="svg-name">LLM</text>
+<text x="289" y="326" text-anchor="middle" class="svg-sub">gpt-4o-mini یا qwen2.5</text>
+<rect class="svg-box" x="24" y="276" width="164" height="72" rx="8"/>
+<text x="106" y="308" text-anchor="middle" class="svg-name">پاسخ فارسی</text>
+<text x="106" y="326" text-anchor="middle" class="svg-sub">با ارجاع [فایل، صفحه]</text>
+</svg>
+</div>
+<figcaption>دو ردیف بالا یک بار برای هر مجموعه سند اجرا می‌شوند؛ ردیف پایین برای هر پرسش، و پرسش هم از همان <code>clean_fa</code> عبور می‌کند.</figcaption>
+</figure>
+</section>
+
+<section id="env">
+<h2><span class="n">۲</span>آماده‌سازی محیط</h2>
+<p>همه چیز در یک نوت‌بوک پایتون (۳.۱۰ به بالا) اجرا می‌شود. برای نسخه لوکال، Ollama باید از قبل نصب و مدل‌ها دانلود شده باشند تا وقت کلاس صرف دانلود نشود.</p>
+<script type="text/plain" data-lang="bash">pip install pymupdf pdfplumber "unstructured[pdf]" hazm parsivar python-bidi \
+            langchain langchain-community langchain-openai langchain-ollama langchain-chroma \
+            chromadb sentence-transformers rank_bm25 openai pandas tiktoken
+
+# مدل‌های لوکال (پیش از کلاس)
+ollama pull qwen2.5:7b          # یا llama3.1:8b / gemma2:9b برای تولید پاسخ
+ollama pull bge-m3              # embedding چندزبانه با پشتیبانی خوب از فارسی</script>
+<div class="tbl"><table>
+<thead><tr><th>مؤلفه</th><th>نسخه OpenAI</th><th>نسخه لوکال</th></tr></thead>
+<tbody>
+<tr><td>Embedding</td><td><code>text-embedding-3-small</code> یا <code>text-embedding-3-large</code></td><td><code>bge-m3</code> یا <code>intfloat/multilingual-e5-large</code></td></tr>
+<tr><td>LLM پاسخ‌دهنده</td><td><code>gpt-4o-mini</code> یا مدل جدیدتر</td><td><code>qwen2.5:7b</code> از طریق Ollama</td></tr>
+<tr><td>Vector store</td><td>Chroma (مشترک)</td><td>Chroma (مشترک)</td></tr>
+<tr><td>هزینه</td><td>پولی، بر اساس توکن</td><td>رایگان، نیاز به GPU یا RAM کافی</td></tr>
+</tbody></table></div>
+<p class="note"><b>نکته کلاسی:</b> کلید API را در <code>.env</code> بگذارید و هرگز داخل نوت‌بوک ننویسید. برای مدل‌های e5 حتماً پیشوند <code>query: </code> و <code>passage: </code> را رعایت کنید، وگرنه دقت بازیابی محسوس افت می‌کند.</p>
+</section>
+
+<section id="extract">
+<h2><span class="n">۳</span>استخراج متن از PDF فارسی</h2>
+<p>PDF متن نیست؛ مجموعه‌ای از glyphهای جای‌گذاری‌شده روی صفحه است. برای فارسی، ابزار استخراج باید شکل‌های حروف (presentation forms) را به یونیکد پایه برگرداند و ترتیب منطقی RTL را از ترتیب بصری بازسازی کند.</p>
+<p>اولین قدم کلاس: یک صفحه را با سه ابزار استخراج کنید و خروجی‌ها را کنار هم ببینید.</p>
+<script type="text/plain" data-lang="python">import fitz, pdfplumber
+
+def extract_pymupdf(path):
+    doc = fitz.open(path)
+    # sort=True بلاک‌ها را بر اساس موقعیت مرتب می‌کند
+    return [p.get_text("text", sort=True) for p in doc]
+
+def extract_blocks(path):
+    # بلاک‌ها با مختصات؛ برای حذف سرصفحه/پاورقی و تشخیص عنوان
+    doc = fitz.open(path)
+    out = []
+    for i, page in enumerate(doc):
+        h = page.rect.height
+        for b in page.get_text("dict")["blocks"]:
+            if b["type"] != 0: continue
+            y0 = b["bbox"][1]
+            if y0 < 0.06*h or y0 > 0.94*h:   # سرصفحه و پاورقی
+                continue
+            for line in b["lines"]:
+                text = "".join(s["text"] for s in line["spans"])
+                size = max(s["size"] for s in line["spans"])
+                out.append({"page": i+1, "text": text, "size": size})
+    return out
+
+def extract_plumber(path):
+    with pdfplumber.open(path) as pdf:
+        return [p.extract_text(x_tolerance=1.5) or "" for p in pdf.pages]</script>
+<div class="tbl"><table>
+<thead><tr><th>ابزار</th><th>نقطه قوت برای فارسی</th><th>نقطه ضعف رایج</th></tr></thead>
+<tbody>
+<tr><td>PyMuPDF (fitz)</td><td>سریع، اطلاعات فونت و مختصات بلاک، معمولاً ترتیب منطقی درست</td><td>در برخی PDFها فاصله‌های اضافه یا کلمات چسبیده</td></tr>
+<tr><td>pdfplumber</td><td>کنترل دقیق روی فاصله کاراکترها (<code>x_tolerance</code>)، خوب برای جدول</td><td>گاهی ترتیب بصری (معکوس) برمی‌گرداند</td></tr>
+<tr><td>unstructured</td><td>تشخیص عناوین و لیست‌ها به‌صورت عنصر</td><td>کندتر، وابسته به همان موتورهای زیرین</td></tr>
+<tr><td>OCR (Tesseract با <code>fas</code> یا مدل بینایی)</td><td>برای PDFهای اسکن‌شده یا فونت‌های خراب</td><td>خطای نویسه، کند</td></tr>
+</tbody></table></div>
+<p>قاعده تصمیم: اگر متن استخراج‌شده پر از کاراکترهای بی‌معنی (مثل <code>Çáã</code> یا مربع خالی) است، فونت بدون جدول ToUnicode جاسازی شده و تنها راه OCR است. این حالت در PDFهای قدیمی ساخته‌شده با فونت‌های غیریونیکد فارسی (مثل نسخه‌های قدیمی زر) رایج است.</p>
+<script type="text/plain" data-lang="python">def looks_broken(text):
+    fa = sum('؀' <= c <= 'ۿ' for c in text)
+    pres = sum('ﭐ' <= c <= '﻿' for c in text)   # شکل‌های نمایشی
+    latin1 = sum('À' <= c <= 'ÿ' for c in text)
+    return {"fa": fa, "presentation_forms": pres, "mojibake": latin1}</script>
+</section>
+
+<section id="justify">
+<h2><span class="n">۴</span>مشکل PDFهای justify شده</h2>
+<p>در متن ترازشده فارسی، نرم‌افزار نشر برای پر کردن خط یا کشیده (ـ) اضافه می‌کند یا هر glyph را جداگانه جای‌گذاری می‌کند؛ نتیجه استخراج، کلمات شکسته، چسبیده یا معکوس است. هر عارضه یک راه‌حل مشخص دارد:</p>
+<div class="tbl"><table>
+<thead><tr><th>عارضه در خروجی</th><th>نمونه</th><th>علت</th><th>راه‌حل</th></tr></thead>
+<tbody>
+<tr><td>کشیده داخل کلمه</td><td>اـــــیران</td><td>justify با tatweel</td><td>حذف <code>U+0640</code></td></tr>
+<tr><td>فاصله وسط کلمه</td><td>م ی‌ ش و د</td><td>glyphهای جداگانه با فاصله بیشتر</td><td>بازسازی کلمات از مختصات کاراکترها با <code>x_tolerance</code> تنظیم‌شده</td></tr>
+<tr><td>کلمات چسبیده</td><td>اینکتاببسیارمهماست</td><td>فاصله با جابه‌جایی ساخته شده، نه کاراکتر space</td><td><code>x_tolerance</code> کوچک‌تر</td></tr>
+<tr><td>حروف معکوس</td><td>ناریا به‌جای ایران</td><td>ذخیره به ترتیب بصری</td><td>معکوس کردن خط + تشخیص با واژگان</td></tr>
+<tr><td>ترتیب کلمات معکوس</td><td>کلمات درست، جمله برعکس</td><td>مرتب‌سازی چپ‌به‌راست ابزار</td><td>معکوس کردن ترتیب کلمات، معمولاً سراسر سند</td></tr>
+<tr><td>شکل‌های نمایشی حروف</td><td>ﻫﻮﺷ (کدهای <code>FExx</code>)</td><td>فونت بدون نگاشت مناسب</td><td><code>unicodedata.normalize("NFKC")</code></td></tr>
+<tr><td>شکستن جمله در انتهای خط</td><td>نیمی از جمله در خط بعد</td><td>شکست خط صفحه‌آرایی</td><td>اتصال خطوط تا نشانه پایان جمله</td></tr>
+</tbody></table></div>
+<h3>گام ۱ — پاک‌سازی پایه</h3>
+<script type="text/plain" data-lang="python">import re, unicodedata
+
+def fix_justify(text: str) -> str:
+    text = unicodedata.normalize("NFKC", text)   # ﻫﻮﺷ -> هوش
+    text = text.replace("ـ", "")              # حذف کشیده
+    text = re.sub(r"[ \t ]{2,}", " ", text)   # فاصله‌های پرکننده
+    return text</script>
+<h3>گام ۲ — انتخاب خودکار بهترین خروجی با امتیاز واژگان</h3>
+<p>ایده: خروجی درست بیشترین نسبت کلمات موجود در واژگان فارسی را دارد. همین معیار برای انتخاب <code>x_tolerance</code> و تشخیص معکوس بودن خط کار می‌کند.</p>
+<script type="text/plain" data-lang="python">import pdfplumber
+from hazm.utils import words_list
+
+VOCAB = {w[0] for w in words_list()}
+
+def vocab_score(text: str) -> float:
+    toks = re.findall(r"[؀-ۿ‌]+", text)
+    return sum(t.replace("‌", "") in VOCAB or t in VOCAB for t in toks) / max(len(toks), 1)
+
+def best_tolerance(page, candidates=(0.8, 1.2, 1.5, 2, 3)):
+    outs = {x: fix_justify(page.extract_text(x_tolerance=x) or "") for x in candidates}
+    return max(outs.items(), key=lambda kv: vocab_score(kv[1]))
+
+def fix_line_direction(line: str) -> str:
+    cands = [line, line[::-1]]            # حالت عادی / حروف معکوس
+    return max(cands, key=vocab_score)</script>
+<h3>گام ۳ — اتصال خطوط به پاراگراف</h3>
+<p>این گام قبل از chunking ضروری است.</p>
+<script type="text/plain" data-lang="python">END = re.compile(r"[.!؟?:؛»)]\s*$")
+
+def lines_to_paragraphs(lines):
+    paras, buf = [], []
+    for ln in (l.strip() for l in lines):
+        if not ln:                         # خط خالی = پایان پاراگراف
+            if buf: paras.append(" ".join(buf)); buf = []
+            continue
+        buf.append(ln)
+        if END.search(ln) and len(ln) < 40:  # خط کوتاه پایانی پاراگراف
+            paras.append(" ".join(buf)); buf = []
+    if buf: paras.append(" ".join(buf))
+    return paras</script>
+<p class="note"><b>نکته آموزشی:</b> معکوس بودن ترتیب کلمات (وقتی خود کلمات درست‌اند) با واژگان قابل تشخیص نیست. نمونه‌ای از هر سند را دستی ببینید؛ اگر معکوس بود، اصلاح را سراسر سند اعمال کنید (یا از یک LLM بپرسید کدام نسخه روان‌تر است).</p>
+</section>
+
+<section id="digits">
+<h2><span class="n">۵</span>اعداد فارسی و جهت متن</h2>
+<p>اعداد داخل متن فارسی یک تکه چپ‌به‌راست (LTR) درون متن راست‌به‌چپ (RTL) هستند؛ اگر ابزار استخراج یا اصلاح ما کل خط را معکوس کند، اعداد هم برعکس می‌شوند. مشکل دوم این است که ۱۴۰۲ و 1402 برای BM25 دو توکن متفاوت‌اند و برای embedding هم لزوماً نزدیک نیستند.</p>
+<div class="tbl"><table>
+<thead><tr><th>مشکل</th><th>متن استخراج‌شده</th><th>متن درست</th></tr></thead>
+<tbody>
+<tr><td>سه نوع رقم در یک سند</td><td>۱۴۰۲ · ١٤٠٢ · 1402</td><td class="num">1402</td></tr>
+<tr><td>عدد برعکس پس از معکوس کردن خط</td><td class="num">2041</td><td class="num">1402</td></tr>
+<tr><td>ترتیب اجزای تاریخ</td><td class="num">12/05/1402</td><td class="num">1402/05/12</td></tr>
+<tr><td>ممیز و جداکننده هزارگان فارسی</td><td>۱۲٬۵۰۰٫۷۵</td><td class="num">12500.75</td></tr>
+<tr><td>کلمات لاتین برعکس</td><td class="num">AGL</td><td class="num">LGA</td></tr>
+<tr><td>کاراکترهای نامرئی جهت</td><td>LRM / RLM / RLE داخل متن</td><td>حذف (به‌جز نیم‌فاصله)</td></tr>
+</tbody></table></div>
+<script type="text/plain" data-lang="python">import re
+
+FA = "۰۱۲۳۴۵۶۷۸۹"
+AR = "٠١٢٣٤٥٦٧٨٩"
+DIGITS = str.maketrans(FA + AR, "0123456789" * 2)
+BIDI_CTRL = re.compile(r"[‎‏‪-‮⁦-⁩]")  # ZWNJ (‌) حفظ می‌شود
+
+def normalize_numbers(text: str) -> str:
+    text = BIDI_CTRL.sub("", text)
+    text = text.translate(DIGITS)
+    text = text.replace("٫", ".").replace("٬", "").replace("٪", "%")
+    return text
+
+LTR_RUN = re.compile(r"[0-9A-Za-z][0-9A-Za-z./:%\-]*")
+
+def unreverse_ltr_runs(line: str) -> str:
+    """بعد از معکوس کردن یک خط بصری، تکه‌های عددی/لاتین را دوباره برگردان."""
+    return LTR_RUN.sub(lambda m: m.group(0)[::-1], line)
+
+def fix_date_order(text: str) -> str:
+    # 12/05/1402 -> 1402/05/12 (فقط وقتی سال چهاررقمی در انتهاست)
+    return re.sub(r"\b(\d{1,2})/(\d{1,2})/(1[34]\d\d)\b", r"\3/\2/\1", text)
+
+assert normalize_numbers("۱۴۰۲/۰۵/۱۲") == "1402/05/12"
+assert normalize_numbers("۱۲٬۵۰۰٫۷۵") == "12500.75"</script>
+<p>دو قاعده طلایی برای کلاس:</p>
+<ul>
+<li><strong>یک شکل استاندارد انتخاب کنید</strong> (پیشنهاد: رقم لاتین در متن ایندکس‌شده). نمایش به کاربر می‌تواند دوباره فارسی شود.</li>
+<li><strong>پرسش کاربر باید از همان تابع عبور کند</strong>؛ وگرنه «ماده ۱۲» با «ماده 12» در ایندکس جور نمی‌شود.</li>
+</ul>
+<p class="note"><b>هشدار:</b> <code>unreverse_ltr_runs</code> فقط روی خطوطی اجرا شود که <code>fix_line_direction</code> آن‌ها را معکوس کرده است؛ اجرای آن روی خط سالم، اعداد را خراب می‌کند.</p>
+</section>
+
+<section id="arabic">
+<h2><span class="n">۶</span>کاراکترهای عربی، نیم‌فاصله و نرمال‌سازی</h2>
+<p>برای کامپیوتر، «كتاب» با کاف عربی و «کتاب» با کاف فارسی دو رشته کاملاً متفاوت‌اند. این ناهماهنگی در PDFهای فارسی بسیار رایج است و بازیابی کلیدواژه‌ای (BM25) را مستقیماً و embedding را تا حدی خراب می‌کند.</p>
+<div class="tbl"><table>
+<thead><tr><th>کاراکتر عربی / ناسازگار</th><th>کد</th><th>تبدیل به</th><th>یادداشت</th></tr></thead>
+<tbody>
+<tr><td>ي (یای عربی)</td><td class="num">U+064A</td><td>ی (U+06CC)</td><td>همیشه</td></tr>
+<tr><td>ى (الف مقصوره)</td><td class="num">U+0649</td><td>ی</td><td>همیشه</td></tr>
+<tr><td>ك (کاف عربی)</td><td class="num">U+0643</td><td>ک (U+06A9)</td><td>همیشه</td></tr>
+<tr><td>ة</td><td class="num">U+0629</td><td>ه</td><td>برای بازیابی؛ نمایش اصلی می‌تواند حفظ شود</td></tr>
+<tr><td>أ إ ٱ</td><td class="num">U+0623, U+0625, U+0671</td><td>ا</td><td>«آ» حفظ شود</td></tr>
+<tr><td>ۀ</td><td class="num">U+06C0</td><td>هٔ (ه + همزه)</td><td>یکسان‌سازی اضافه</td></tr>
+<tr><td>اعراب َ ُ ِ ّ ً</td><td class="num">U+064B–U+065F, U+0670</td><td>حذف</td><td>تشدید را در متن نمایشی نگه دارید</td></tr>
+<tr><td>ZWJ</td><td class="num">U+200D</td><td>حذف</td><td>نباید با نیم‌فاصله (U+200C) اشتباه شود</td></tr>
+</tbody></table></div>
+<p>نیم‌فاصله چالش جداگانه‌ای است: «میشود»، «می شود» و «می‌شود» در یک سند کنار هم می‌آیند. hazm و parsivar این موارد را تا حد خوبی اصلاح می‌کنند؛ بهتر است بازنویسی نکنید.</p>
+<h3>تابع نهایی کلاس</h3>
+<p>همه اصلاحات بخش‌های قبل در یک جا (ترتیب مهم است):</p>
+<script type="text/plain" data-lang="python">from hazm import Normalizer
+
+AR2FA = str.maketrans({
+    "ي": "ی", "ى": "ی", "ك": "ک", "ة": "ه",
+    "أ": "ا", "إ": "ا", "ٱ": "ا", "ۀ": "هٔ", "‍": None,
+})
+DIACRITICS = re.compile(r"[ً-ٰٟ]")
+
+_hazm = Normalizer(persian_numbers=False)   # اعداد را خودمان مدیریت می‌کنیم
+
+def clean_fa(text: str) -> str:
+    text = fix_justify(text)          # NFKC + حذف کشیده + فاصله‌ها
+    text = text.translate(AR2FA)      # حروف عربی -> فارسی
+    text = DIACRITICS.sub("", text)   # اعراب
+    text = _hazm.normalize(text)      # نیم‌فاصله، فاصله علائم، می/ها
+    text = normalize_numbers(text)    # ارقام لاتین + حذف کنترل‌های bidi
+    return text.strip()
+
+# همان تابع برای پرسش کاربر:
+# query_vec = embed(clean_fa(user_query))</script>
+<p>تمرین سریع: کاراکترهای غیرفارسی و حروف عربی را قبل و بعد از <code>clean_fa</code> بشمارید. بعد از پاک‌سازی، هیچ کاراکتری در بازه <code>U+FB50</code> تا <code>U+FEFF</code> و هیچ ي/ك نباید باقی بماند.</p>
+<script type="text/plain" data-lang="python">from collections import Counter
+
+ARABIC_ONLY = set("يكىةأإٱۀـ")
+odd = lambda t: Counter(c for c in t
+                        if c in ARABIC_ONLY
+                        or not ('ء' <= c <= 'ی' or c.isascii() or c in ' \n‌'))
+
+print(odd(raw).most_common(20))
+print(odd(clean_fa(raw)).most_common(20))</script>
+</section>
+
+<section id="chunk">
+<h2><span class="n">۷</span>بخش‌بندی دقیق برای chunkهای قوی‌تر</h2>
+<p>chunk قوی یعنی یک واحد معنایی کامل که وسط جمله قطع نشده، می‌داند زیر کدام عنوان است، و اندازه‌اش با توکن سنجیده شده نه کاراکتر. روش پیشنهادی جلسه: <strong>ابتدا ساختار، سپس جمله، سپس بودجه توکن.</strong></p>
+<div class="tbl"><table>
+<thead><tr><th>روش</th><th>مزیت</th><th>مشکل در فارسی</th></tr></thead>
+<tbody>
+<tr><td>برش ثابت کاراکتری</td><td>ساده</td><td>کلمه و جمله را نیمه می‌برد</td></tr>
+<tr><td><code>RecursiveCharacterTextSplitter</code> پیش‌فرض</td><td>آماده در LangChain</td><td>جداکننده‌های «؟»، «؛» و «،» را نمی‌شناسد</td></tr>
+<tr><td>Recursive با جداکننده‌های فارسی</td><td>بهبود سریع</td><td>ساختار سند (فصل، ماده) را نمی‌بیند</td></tr>
+<tr><td>ساختار + جمله + توکن (روش جلسه)</td><td>مرزهای معنایی حفظ می‌شود، عنوان داخل chunk</td><td>نیاز به تشخیص عنوان</td></tr>
+<tr><td>Semantic chunking</td><td>مرزها بر اساس تغییر موضوع</td><td>کند، وابسته به کیفیت embedding فارسی</td></tr>
+</tbody></table></div>
+<p>نسخه سریع با LangChain (برای مقایسه در کلاس):</p>
+<script type="text/plain" data-lang="python">from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+fa_splitter = RecursiveCharacterTextSplitter(
+    separators=["\n\n", "\n", ".", "؟", "!", "؛", "،", " ", ""],
+    chunk_size=800, chunk_overlap=120, keep_separator="end",
+)</script>
+<p>نسخه اصلی جلسه — <code>chunk_fa()</code>:</p>
+<script type="text/plain" data-lang="python">import tiktoken
+from hazm import sent_tokenize
+
+enc = tiktoken.get_encoding("o200k_base")
+ntok = lambda s: len(enc.encode(s))
+
+# عناوین رایج در اسناد فارسی (اعداد پس از clean_fa لاتین هستند)
+HEADING = re.compile(r"^((فصل|بخش|ماده|تبصره|مبحث|گفتار)\s+\d+|\d+(\.\d+)*[-.)]\s)")
+
+def split_sections(paras):
+    sections, cur = [], {"title": "", "paras": []}
+    for p in paras:
+        if HEADING.match(p) and len(p) < 120:
+            if cur["paras"]: sections.append(cur)
+            cur = {"title": p, "paras": []}
+        else:
+            cur["paras"].append(p)
+    if cur["paras"]: sections.append(cur)
+    return sections
+
+def chunk_fa(sections, max_tokens=400, overlap_sents=1, meta=None):
+    chunks = []
+    for sec in sections:
+        sents = [s for p in sec["paras"] for s in sent_tokenize(p)]
+        buf = []
+        for s in sents:
+            if buf and ntok(" ".join(buf + [s])) > max_tokens:
+                chunks.append(_make(sec["title"], buf, meta))
+                buf = buf[-overlap_sents:] if overlap_sents else []
+            buf.append(s)
+        if buf: chunks.append(_make(sec["title"], buf, meta))
+    return chunks
+
+def _make(title, sents, meta):
+    body = " ".join(sents)
+    return {"text": f"{title}\n{body}".strip(),   # عنوان به‌عنوان زمینه داخل embedding
+            "body": body, "section": title, **(meta or {})}</script>
+<p>قواعد کلیدی برای توضیح در کلاس:</p>
+<ol>
+<li><strong>اندازه را با توکن بسنجید.</strong> هر کلمه فارسی معمولاً به چند توکن تبدیل می‌شود؛ نسبت توکن به کاراکتر را روی اسناد خودتان اندازه بگیرید و سقف را با توکنایزر همان مدل تنظیم کنید.</li>
+<li><strong>همپوشانی بر اساس جمله، نه کاراکتر.</strong> یک تا دو جمله کافی است.</li>
+<li><strong>مرز بخش را هرگز نشکنید.</strong> یک chunk نباید انتهای «ماده ۱۲» و ابتدای «ماده ۱۳» را با هم داشته باشد.</li>
+<li><strong>عنوان را داخل متن chunk بگذارید</strong> (contextual header). جمله‌ای مثل «مهلت آن ۳۰ روز است» بدون عنوان قابل بازیابی نیست.</li>
+<li><strong>metadata کامل نگه دارید:</strong> نام فایل، شماره صفحه، عنوان بخش، شماره ماده. برای استناد در پاسخ و برای فیلتر لازم است.</li>
+<li><strong>جدول‌ها را جداگانه و کامل نگه دارید</strong> (مثلاً به markdown تبدیل کنید)؛ نصف جدول بی‌فایده است.</li>
+<li>اگر فونت عناوین در PDF بزرگ‌تر است، به‌جای regex از <code>size</code> خروجی <code>extract_blocks</code> برای تشخیص عنوان استفاده کنید.</li>
+</ol>
+</section>
+
+<section id="embed">
+<h2><span class="n">۸</span>Embedding و ساخت RAG: OpenAI در برابر لوکال</h2>
+<p>هر دو نسخه دقیقاً از همان chunkها و همان تابع <code>clean_fa</code> استفاده می‌کنند؛ فقط مدل embedding و LLM عوض می‌شود. این طراحی مقایسه منصفانه در بخش تست را ممکن می‌کند.</p>
+<div class="tbl"><table>
+<thead><tr><th>ویژگی</th><th>text-embedding-3-small</th><th>text-embedding-3-large</th><th>bge-m3 (لوکال)</th><th>multilingual-e5-large (لوکال)</th></tr></thead>
+<tbody>
+<tr><td>ابعاد بردار</td><td class="num">1536</td><td class="num">3072</td><td class="num">1024</td><td class="num">1024</td></tr>
+<tr><td>حداکثر ورودی (توکن)</td><td class="num">8191</td><td class="num">8191</td><td class="num">8192</td><td class="num">512</td></tr>
+<tr><td>نکته فارسی</td><td>پایه خوب، ارزان</td><td>دقیق‌تر، گران‌تر</td><td>چندزبانه قوی، بدون هزینه</td><td>پیشوند <code>query:</code>/<code>passage:</code> الزامی، chunk زیر ۵۱۲ توکن</td></tr>
+</tbody></table></div>
+<script type="text/plain" data-lang="python">from langchain_core.documents import Document
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_ollama import OllamaEmbeddings, ChatOllama
+
+docs = [Document(page_content=c["text"],
+                 metadata={k: v for k, v in c.items() if k != "text" and v is not None})
+        for c in chunks]
+
+BACKENDS = {
+    "openai": (OpenAIEmbeddings(model="text-embedding-3-small"),
+               ChatOpenAI(model="gpt-4o-mini", temperature=0)),
+    "local":  (OllamaEmbeddings(model="bge-m3"),
+               ChatOllama(model="qwen2.5:7b", temperature=0)),
+}
+
+STORES = {}
+for name, (emb, llm) in BACKENDS.items():
+    vs = Chroma.from_documents(docs, emb, collection_name=f"fa_{name}",
+                               persist_directory="./chroma_fa",
+                               collection_metadata={"hnsw:space": "cosine"})
+    STORES[name] = (vs, llm)</script>
+<p>پرامپت فارسی و تابع پاسخ:</p>
+<script type="text/plain" data-lang="python">PROMPT = """تو یک دستیار فارسی‌زبان هستی. فقط بر اساس متن‌های زیر و به فارسی پاسخ بده.
+اگر پاسخ در متن‌ها نیست، بگو «در اسناد موجود نیست».
+برای هر ادعا منبع را به شکل [فایل، صفحه] بیاور.
+
+متن‌ها:
+{context}
+
+پرسش: {question}
+پاسخ:"""
+
+def answer(question, backend="openai", k=5):
+    vs, llm = STORES[backend]
+    q = clean_fa(question)                      # نرمال‌سازی پرسش الزامی است
+    hits = vs.similarity_search(q, k=k)
+    ctx = "\n\n---\n\n".join(
+        f"[{h.metadata.get('source')}، ص {h.metadata.get('page')}]\n{h.page_content}" for h in hits)
+    return llm.invoke(PROMPT.format(context=ctx, question=q)).content, hits</script>
+<h3>بازیابی ترکیبی (Hybrid)</h3>
+<p>برای فارسی معمولاً ارزش اضافه کردن دارد، چون اسامی، شماره ماده و اصطلاحات تخصصی را BM25 بهتر پیدا می‌کند:</p>
+<script type="text/plain" data-lang="python">from rank_bm25 import BM25Okapi
+from hazm import word_tokenize
+
+bm25 = BM25Okapi([word_tokenize(d.page_content) for d in docs])
+
+def hybrid_search(question, backend, k=5, k_rrf=60):
+    q = clean_fa(question)
+    dense = STORES[backend][0].similarity_search(q, k=20)
+    scores = bm25.get_scores(word_tokenize(q))
+    sparse = [docs[i] for i in scores.argsort()[::-1][:20]]
+    rrf = {}
+    for ranked in (dense, sparse):              # Reciprocal Rank Fusion
+        for r, d in enumerate(ranked):
+            rrf[d.page_content] = rrf.get(d.page_content, 0) + 1 / (k_rrf + r + 1)
+    best = sorted(rrf, key=rrf.get, reverse=True)[:k]
+    return [next(d for d in docs if d.page_content == t) for t in best]</script>
+<p class="note"><b>نکات نسخه لوکال:</b> مدل‌های ۷ تا ۹ میلیاردی گاهی به انگلیسی پاسخ می‌دهند یا فارسی و عربی را قاطی می‌کنند؛ دستور «به فارسی پاسخ بده» را در پرامپت نگه دارید، <code>k</code> را کوچک (۳ تا ۵) نگه دارید و خروجی را با <code>clean_fa</code> هم عبور دهید. هرگز بردارهای دو مدل embedding متفاوت را در یک collection نریزید.</p>
+</section>
+
+<section id="test">
+<h2><span class="n">۹</span>تست و بررسی chunkهای ساخته‌شده</h2>
+<p>chunkها در سه لایه تست می‌شوند: بازرسی خودکار بدون مدل، بازبینی چشمی کنار صفحه PDF، و سنجش کمّی بازیابی. هر تغییری در <code>clean_fa</code> یا <code>chunk_fa</code> باید با همین سه لایه دوباره سنجیده شود.</p>
+<h3>لایه ۱ — بازرسی خودکار (audit)</h3>
+<script type="text/plain" data-lang="python">import pandas as pd, hashlib
+
+BAD = re.compile(r"[ﭐ-﷿ﹰ-﻿ـيك]")   # شکل نمایشی، کشیده، ي/ك
+
+def audit(chunks):
+    rows = []
+    for i, c in enumerate(chunks):
+        t = c["body"].strip()
+        rows.append({
+            "id": i,
+            "tokens": ntok(t),
+            "vocab": round(vocab_score(t), 2),
+            "ends_ok": bool(re.search(r"[.!؟?:؛»)]$", t)),
+            "bad_chars": len(BAD.findall(t)),
+            "has_title": bool(c["section"]),
+            "hash": hashlib.md5(t.encode()).hexdigest()[:8],
+        })
+    df = pd.DataFrame(rows)
+    df["dup"] = df.duplicated("hash", keep=False)
+    return df
+
+df = audit(chunks)
+print(df[["tokens", "vocab"]].describe())
+suspects = df[(df.tokens < 50) | (df.vocab < 0.6) | (df.bad_chars > 0) | (~df.ends_ok) | df.dup]
+print(len(suspects), "chunk مشکوک"); suspects.head(20)</script>
+<div class="tbl"><table>
+<thead><tr><th>بررسی</th><th>نشانه مشکل</th><th>معمولاً علتش</th></tr></thead>
+<tbody>
+<tr><td><code>tokens</code> خیلی کم</td><td>chunk بی‌زمینه</td><td>عنوان یا پاورقی جدا شده</td></tr>
+<tr><td><code>vocab</code> پایین</td><td>متن خراب</td><td>معکوس، چسبیده، یا فونت بدون ToUnicode</td></tr>
+<tr><td><code>bad_chars</code> بیشتر از صفر</td><td>نرمال‌سازی ناقص</td><td><code>clean_fa</code> اجرا نشده یا مرحله‌ای جا افتاده</td></tr>
+<tr><td><code>ends_ok</code> نادرست</td><td>جمله نیمه‌کاره</td><td>اتصال خطوط یا تشخیص جمله ضعیف</td></tr>
+<tr><td><code>dup</code></td><td>chunk تکراری</td><td>سرصفحه/پاورقی تکرارشونده</td></tr>
+</tbody></table></div>
+<p>آستانه‌ها (۵۰ توکن، ۰٫۶) نقطه شروع هستند؛ با دیدن توزیع اسناد خودتان تنظیمشان کنید.</p>
+<h3>لایه ۲ — بازبینی چشمی راست‌به‌چپ</h3>
+<p>چاپ متن فارسی در خروجی معمولی نوت‌بوک ممکن است خودش گمراه‌کننده باشد. chunk را در HTML با <code>dir="rtl"</code> کنار تصویر همان صفحه ببینید:</p>
+<script type="text/plain" data-lang="python">import base64
+from IPython.display import HTML, display
+
+def show_chunk(c, pdf_path):
+    page = fitz.open(pdf_path)[c["page"] - 1]
+    png = base64.b64encode(page.get_pixmap(dpi=80).tobytes("png")).decode()
+    display(HTML(f"""<div style="display:flex;gap:12px">
+      <img src="data:image/png;base64,{png}" style="width:45%">
+      <div dir="rtl" style="width:55%;font-family:Vazirmatn,Tahoma;line-height:2">
+        <b>{c['section']}</b><br>{c['body']}</div></div>"""))
+
+for i in suspects.id.head(5): show_chunk(chunks[i], "sample.pdf")</script>
+<h3>لایه ۳ — سنجش کمّی بازیابی</h3>
+<p>برای هر chunk نمونه، یک پرسش می‌سازیم که پاسخش فقط در همان chunk است؛ سپس می‌بینیم retriever آن chunk را در چند نتیجه اول برمی‌گرداند یا نه.</p>
+<script type="text/plain" data-lang="python">import random
+
+QGEN = """از متن زیر یک پرسش فارسی طبیعی بساز که پاسخش فقط در همین متن باشد.
+از کلمات متن کپی نکن؛ با بیان دیگر بپرس. فقط پرسش را بنویس.
+
+متن:
+{chunk}"""
+
+random.seed(7)
+sample = random.sample(range(len(chunks)), 30)
+gen_llm = BACKENDS["openai"][1]
+qa = [{"q": gen_llm.invoke(QGEN.format(chunk=chunks[i]["text"])).content.strip(),
+       "gold": chunks[i]["text"]} for i in sample]
+
+def evaluate(search_fn, k=5):
+    hit = rr = 0
+    for item in qa:
+        texts = [d.page_content for d in search_fn(item["q"])[:k]]
+        if item["gold"] in texts:
+            hit += 1; rr += 1 / (texts.index(item["gold"]) + 1)
+    return {"Hit@k": round(hit / len(qa), 2), "MRR": round(rr / len(qa), 2)}
+
+for name in STORES:
+    print(name,          evaluate(lambda q: STORES[name][0].similarity_search(clean_fa(q), k=5)))
+    print(name + "+bm25", evaluate(lambda q: hybrid_search(q, name)))</script>
+<p>جدول نتایج کلاس (در جلسه پر می‌شود):</p>
+<div class="tbl"><table>
+<thead><tr><th>پیکربندی</th><th>Hit@5</th><th>MRR</th><th>یادداشت</th></tr></thead>
+<tbody>
+<tr><td>بدون <code>clean_fa</code> + برش ثابت + OpenAI</td><td></td><td></td><td></td></tr>
+<tr><td><code>clean_fa</code> + <code>chunk_fa</code> + OpenAI</td><td></td><td></td><td></td></tr>
+<tr><td><code>clean_fa</code> + <code>chunk_fa</code> + bge-m3</td><td></td><td></td><td></td></tr>
+<tr><td><code>clean_fa</code> + <code>chunk_fa</code> + bge-m3 + BM25</td><td></td><td></td><td></td></tr>
+</tbody></table></div>
+<p>سه هشدار برای تفسیر نتایج:</p>
+<ul>
+<li>پرسش‌های مصنوعی معمولاً واژه‌های chunk را تکرار می‌کنند و نتیجه را خوش‌بینانه نشان می‌دهند؛ ۱۰ تا ۲۰ پرسش دست‌نویس واقعی هم اضافه کنید.</li>
+<li>چند پرسش با ارقام فارسی، کاف/یای عربی و بدون نیم‌فاصله بنویسید تا نرمال‌سازی پرسش هم تست شود.</li>
+<li>اگر یک chunk مدام بازیابی نمی‌شود، اول آن را در لایه ۲ ببینید؛ معمولاً مشکل از متن است، نه از مدل.</li>
+</ul>
+</section>
+
+<section id="practice">
+<h2><span class="n">۱۰</span>تمرین کلاسی و چک‌لیست نهایی</h2>
+<p>تمرین‌ها (به ترتیب دشواری):</p>
+<ol>
+<li>یک PDF justify‌شده را با سه ابزار استخراج کنید و <code>vocab_score</code> هر کدام را قبل و بعد از <code>clean_fa</code> گزارش کنید.</li>
+<li>به <code>chunk_fa</code> شماره صفحه هر پاراگراف را اضافه کنید تا هر chunk فیلد <code>page</code> داشته باشد (برای <code>show_chunk</code> و استناد لازم است).</li>
+<li><code>max_tokens</code> را با مقادیر ۲۰۰، ۴۰۰ و ۸۰۰ اجرا کنید و Hit@5 را مقایسه کنید.</li>
+<li>برای یک سند حقوقی، تشخیص «ماده» و «تبصره» را طوری تغییر دهید که تبصره همراه ماده خودش در یک chunk بماند.</li>
+<li>یک پرسش با ارقام فارسی به هر دو نسخه (OpenAI و لوکال) بدهید؛ یک بار با و یک بار بدون <code>clean_fa</code> روی پرسش، و تفاوت را توضیح دهید.</li>
+</ol>
+<h3>چک‌لیست قبل از ایندکس کردن هر مجموعه PDF فارسی</h3>
+<ul class="checklist">
+<li><label><input type="checkbox" id="c1"><span>متن قابل استخراج است یا نیاز به OCR دارد (<code>looks_broken</code>)</span></label></li>
+<li><label><input type="checkbox" id="c2"><span>سرصفحه، پاورقی و شماره صفحه حذف شده‌اند</span></label></li>
+<li><label><input type="checkbox" id="c3"><span>کشیده و شکل‌های نمایشی حروف باقی نمانده‌اند</span></label></li>
+<li><label><input type="checkbox" id="c4"><span>جهت خطوط و اعداد در نمونه تصادفی درست است</span></label></li>
+<li><label><input type="checkbox" id="c5"><span>ي/ك به ی/ک تبدیل شده‌اند و نیم‌فاصله‌ها یکدست هستند</span></label></li>
+<li><label><input type="checkbox" id="c6"><span>ارقام به یک شکل استاندارد درآمده‌اند</span></label></li>
+<li><label><input type="checkbox" id="c7"><span>خطوط به پاراگراف وصل شده‌اند و عناوین شناسایی شده‌اند</span></label></li>
+<li><label><input type="checkbox" id="c8"><span>chunkها مرز بخش را نمی‌شکنند و عنوان بخش را دارند</span></label></li>
+<li><label><input type="checkbox" id="c9"><span>metadata شامل فایل، صفحه و بخش است</span></label></li>
+<li><label><input type="checkbox" id="c10"><span>گزارش <code>audit</code> بدون chunk مشکوک حل‌نشده است</span></label></li>
+<li><label><input type="checkbox" id="c11"><span>پرسش کاربر هم از <code>clean_fa</code> عبور می‌کند</span></label></li>
+<li><label><input type="checkbox" id="c12"><span>Hit@5 و MRR برای هر دو نسخه ثبت شده است</span></label></li>
+</ul>
+</section>
+
+</main>
+</div>
+
+<script>
+document.querySelectorAll('script[type="text/plain"]').forEach(function(s){
+  var lang = s.getAttribute('data-lang') || '';
+  var box = document.createElement('div'); box.className = 'codebox';
+  var bar = document.createElement('div'); bar.className = 'bar';
+  var label = document.createElement('span'); label.textContent = lang;
+  var btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'کپی';
+  var pre = document.createElement('pre'); var code = document.createElement('code');
+  var txt = s.textContent.replace(/^\n/, ''); code.textContent = txt; pre.appendChild(code);
+  btn.addEventListener('click', function(){
+    var done = function(){ btn.textContent = 'کپی شد'; setTimeout(function(){ btn.textContent = 'کپی'; }, 1500); };
+    var fallback = function(){ var r = document.createRange(); r.selectNodeContents(code); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); btn.textContent = 'انتخاب شد'; };
+    try { navigator.clipboard.writeText(txt).then(done, fallback); } catch(e){ fallback(); }
+  });
+  bar.appendChild(label); bar.appendChild(btn); box.appendChild(bar); box.appendChild(pre);
+  s.parentNode.replaceChild(box, s);
+});
+document.querySelectorAll('.checklist input').forEach(function(cb){
+  try { if (localStorage.getItem('rag-fa-' + cb.id) === '1') cb.checked = true; } catch(e){}
+  cb.addEventListener('change', function(){ try { localStorage.setItem('rag-fa-' + cb.id, cb.checked ? '1' : '0'); } catch(e){} });
+});
+</script>
+
+</body></html>

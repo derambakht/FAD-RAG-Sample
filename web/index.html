@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RAG فارسی</title>
+  <meta name="description" content="محیط کامل ساخت و ارزیابی RAG فارسی">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d6b62'/%3E%3Ctext x='16' y='22' font-size='15' text-anchor='middle' fill='white' font-family='Tahoma' font-weight='bold'%3Eر%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script>
+    try { const t = localStorage.getItem("rag-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <script src="/static/vendor/marked.min.js" defer></script>
+  <script src="/static/vendor/purify.min.js" defer></script>
+  <script type="module" src="/static/js/app.js"></script>
+</head>
+<body>
+<div class="mobile-bar">
+  <button class="btn icon ghost" id="menu-btn" aria-label="منو"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  <b>RAG فارسی</b>
+  <span></span>
+</div>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">ر</div>
+      <div><b>RAG فارسی</b><small>LangChain · Chroma · Qdrant</small></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-foot">
+      <a class="jobs-pill" id="jobs-pill" href="#/system"><span class="dot"></span><span id="jobs-text">کار فعالی نیست</span></a>
+      <label class="switch"><input type="checkbox" id="fa-digits"> ارقام فارسی در نمایش</label>
+      <div class="row">
+        <div class="seg" id="theme-seg">
+          <button data-t="">خودکار</button><button data-t="light">روشن</button><button data-t="dark">تیره</button>
+        </div>
+      </div>
+      <a class="small muted" href="/api/docs" target="_blank" rel="noopener">مستندات API</a>
+    </div>
+  </aside>
+  <main id="view" tabindex="-1"></main>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+</html>

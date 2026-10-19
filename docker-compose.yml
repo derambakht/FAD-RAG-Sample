@@ -1,0 +1,67 @@
+# استقرار سرور: برنامه + Qdrant (+ Ollama اختیاری)
+#   cp .env.example .env    # و OPENAI_API_KEY و ... را تنظیم کنید
+#   docker compose up -d --build
+#   docker compose --profile ollama up -d --build      # همراه Ollama
+# پنل: http://SERVER:8000
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        INSTALL_HF: ${INSTALL_HF:-false}
+    image: rag-fa:1.0.0
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8000
+      DATA_DIR: /app/data
+      VECTOR_STORE: qdrant
+      QDRANT_URL: http://qdrant:6333
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - app-data:/app/data          # SQLite، فایل‌های بارگذاری‌شده، کش مدل‌های HF
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.19.2
+    volumes:
+      - qdrant-data:/qdrant/storage
+    # Qdrant فقط در شبکه داخلی compose در دسترس است. برای دیدن داشبورد روی خود سرور:
+    ports:
+      - "127.0.0.1:6333:6333"
+    # اگر Qdrant را بیرون از این شبکه در دسترس می‌گذارید، حتماً کلید API بگذارید و
+    # همین مقدار را به‌عنوان QDRANT_API_KEY در .env برنامه هم تنظیم کنید:
+    # environment:
+    #   QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY}
+    healthcheck:
+      test: ["CMD", "bash", "-c", ":> /dev/tcp/127.0.0.1/6333"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:0.40.6
+    profiles: ["ollama"]
+    volumes:
+      - ollama-data:/root/.ollama
+    # برای GPU انویدیا (نیاز به nvidia-container-toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  app-data:
+  qdrant-data:
+  ollama-data:

@@ -1,0 +1,30 @@
+# هسته برنامه — OpenAI و Ollama و هر دو پایگاه داده برداری
+fastapi==0.146.0
+uvicorn[standard]==0.54.0
+python-multipart==0.0.32
+pydantic-settings==2.16.0
+python-dotenv==1.2.4
+httpx==0.28.1
+
+langchain-core==1.6.12
+langchain-text-splitters==1.1.3
+langchain-openai==1.7.2
+langchain-ollama==1.1.0
+langchain-chroma==1.1.0
+langchain-qdrant==1.1.0
+chromadb==1.5.9
+qdrant-client==1.19.1
+
+# پردازش متن فارسی و اسناد
+hazm==0.12.1
+pymupdf==1.28.2
+pdfplumber==0.11.10
+python-docx==1.2.0
+openpyxl==3.1.5  # اکسل xlsx (داده‌های جدولی فروش)
+xlrd==2.0.2  # اکسل قدیمی xls
+tiktoken==0.14.0
+rank-bm25==0.2.2
+numpy==2.5.4
+
+# OCR اختیاری (برنامه Tesseract با بسته زبان fas هم لازم است)
+pytesseract==0.3.13

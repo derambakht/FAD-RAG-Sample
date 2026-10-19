@@ -1,0 +1,6 @@
+# مدل‌های لوکال HuggingFace (embedding، LLM کوچک و reranker) — حجیم است (torch)
+# برای GPU ابتدا torch مناسب CUDA را از https://pytorch.org نصب کنید
+-r requirements.txt
+langchain-huggingface==1.2.3
+sentence-transformers==6.1.0
+torch==2.14.1

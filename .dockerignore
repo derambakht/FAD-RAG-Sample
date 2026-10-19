@@ -1,0 +1,11 @@
+.venv
+.git
+__pycache__
+*.pyc
+.pytest_cache
+.env
+class-login.md
+data
+tests
+*.html
+!web/index.html
